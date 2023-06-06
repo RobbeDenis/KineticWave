@@ -9,10 +9,12 @@ MainComponent::MainComponent()
     , m_InfoPos{ 10, 0 }
     , m_SquareWidth{ 270 }
     , m_SquareSpacing{ 20 }
-    , m_SquarePos{ 180, 20, 0, 0 }
+    , m_SquarePos{ 200, 20, 0, 0 }
     , m_CircleRadius{ 30 }
     , m_FontSize{ 24 }
     , m_SmoothingFactor{ 0.2f }
+    , m_SettingsSpacing{ 20 }
+    , m_SettingsY{ 310 }
 {
     setSize (800, 600);
 
@@ -125,13 +127,6 @@ MainComponent::~MainComponent()
 
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
-    // This function will be called when the audio device is started, or when
-    // its settings (i.e. sample rate, block size, etc) are changed.
-
-    // You can use this function to initialise any resources you might need,
-    // but be careful - it will be called on the audio thread, not the GUI thread.
-
-    // For more details, see the help for AudioProcessor::prepareToPlay()
     m_TransportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
 }
 
@@ -149,10 +144,6 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
 void MainComponent::releaseResources()
 {
-    // This will be called when the audio device stops, or when it is being
-    // restarted due to a setting change.
-
-    // For more details, see the help for AudioProcessor::releaseResources()
     m_TransportSource.releaseResources();
 }
 
@@ -162,9 +153,24 @@ void MainComponent::paint (juce::Graphics& g)
 
     juce::Colour rectColor{ 29, 37, 41};
     g.setColour(rectColor);
+
     g.fillRect(static_cast<int>(m_InfoPos.x) + 7, static_cast<int>(m_InfoPos.y) + 165, 145, 125);
+
     g.fillRect(static_cast<int>(m_SquarePos.x), static_cast<int>(m_SquarePos.y), m_SquareWidth, m_SquareWidth);
     g.fillRect(static_cast<int>(m_SquarePos.x) + m_SquareWidth + m_SquareSpacing, static_cast<int>(m_SquarePos.y), m_SquareWidth, m_SquareWidth);
+
+    const int settingsW{ (getWidth() - (5 * m_SettingsSpacing)) / 4 };
+    const int settingsH{ getHeight() - m_SettingsY - m_SettingsSpacing };
+    g.fillRect(m_SettingsSpacing, m_SettingsY, settingsW, settingsH);
+    g.fillRect(m_SettingsSpacing + settingsW + m_SettingsSpacing, m_SettingsY, settingsW, settingsH);
+    g.fillRect(m_SettingsSpacing + (settingsW + m_SettingsSpacing) * 2, m_SettingsY, settingsW, settingsH);
+    g.fillRect(m_SettingsSpacing + (settingsW + m_SettingsSpacing) * 3, m_SettingsY, settingsW, settingsH);
+
+    const int fontSize{ 20 };
+    g.setColour(juce::Colours::black);
+    g.setFont(juce::Font(fontSize, juce::Font::bold));
+
+    g.drawMultiLineText("GAIN", static_cast<int>(m_SquarePos.x) - 15, static_cast<int>(m_InfoPos.y) + 120, fontSize / 2, juce::Justification::centred);
 }
 
 void MainComponent::resized()

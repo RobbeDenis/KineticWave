@@ -45,7 +45,11 @@ private:
     float map(float value, float min, float max, float toMin, float toMax);
     void smooth(float &input, float target);
 
-    // Effects
+    // Settings UI
+    int m_SettingsSpacing;
+    int m_SettingsY;
+
+    // Gain
     effects::Gain m_Gain;
 
     // Sample
