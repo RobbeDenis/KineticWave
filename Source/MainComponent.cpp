@@ -137,12 +137,6 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
-    // Your audio-processing code goes here!
-
-    // For more details, see the help for AudioProcessor::getNextAudioBlock()
-
-    // Right now we are not producing any data, in which case we need to clear the buffer
-    // (to prevent the output of random noise)
     if (m_pReaderSource.get() == nullptr)
     {
         bufferToFill.clearActiveBufferRegion();
@@ -150,6 +144,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
     }
 
     m_TransportSource.getNextAudioBlock(bufferToFill);
+    m_Gain.processBlock(bufferToFill, 1 - m_LeftWrist.y);
 }
 
 void MainComponent::releaseResources()

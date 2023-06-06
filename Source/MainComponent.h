@@ -2,6 +2,7 @@
 
 #include <JuceHeader.h>
 #include "KSkeletonTracker.h"
+#include "Gain.h"
 
 class MainComponent final : public juce::AudioAppComponent, private juce::Timer, private juce::ChangeListener
 {
@@ -43,6 +44,9 @@ private:
 
     float map(float value, float min, float max, float toMin, float toMax);
     void smooth(float &input, float target);
+
+    // Effects
+    effects::Gain m_Gain;
 
     // Sample
     juce::AudioFormatManager m_FormatManager;
