@@ -32,7 +32,7 @@ MainComponent::MainComponent()
 void MainComponent::initLoadUI()
 {
     addAndMakeVisible(&m_OpenButton);
-    m_OpenButton.setButtonText("Open...");
+    m_OpenButton.setButtonText("Add sample");
     m_OpenButton.onClick = [this] { loadFile(); };
 
     addAndMakeVisible(&m_PlayButton);
@@ -183,9 +183,14 @@ void MainComponent::resized()
     m_InfoRX.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 88 + offset, 200, 50);
     m_InfoRY.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 110 + offset, 200, 50);
 
-    m_OpenButton.setBounds(200, 0, 50, 30);
-    m_PlayButton.setBounds(200, 40, 50, 30);
-    m_StopButton.setBounds(200, 80, 50, 30);
+    const int bX{ 21 };
+    const int bY{ 60 };
+    const int bW{ 135 };
+    const int bH{ 26 };
+    const int bOffset{ bH + 5 };
+    m_OpenButton.setBounds(bX, bY, bW, bH);
+    m_PlayButton.setBounds(bX, bY + bOffset, bW, bH);
+    m_StopButton.setBounds(bX, bY + bOffset * 2, bW, bH);
 
     renderKinectTracking();
 }
