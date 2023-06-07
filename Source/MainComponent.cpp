@@ -1,6 +1,5 @@
 #include "MainComponent.h"
 
-//==============================================================================
 MainComponent::MainComponent()
     : m_LeftWrist{ 0, 0, 0, 0 }
     , m_RightWrist{ 0, 0, 0, 0 }
@@ -8,7 +7,7 @@ MainComponent::MainComponent()
     , m_EnableUpdate{ false }
     , m_InfoPos{ 10, 0 }
     , m_SquareWidth{ 270 }
-    , m_SquareSpacing{ 20 }
+    , m_SquareSpacing{ 39 }
     , m_SquarePos{ 200, 20, 0, 0 }
     , m_CircleRadius{ 30 }
     , m_FontSize{ 24 }
@@ -21,6 +20,7 @@ MainComponent::MainComponent()
     initKinectInfoUI();
     initLoadUI();
     initKinectTrackingUI();
+    initGainSettingsUI();
 
     initInputChannels();
     initKinect();
@@ -29,6 +29,44 @@ MainComponent::MainComponent()
 
     m_FormatManager.registerBasicFormats();
     m_TransportSource.addChangeListener(this);
+}
+
+void MainComponent::initGainSettingsUI()
+{
+    const int tbW{ 40 };
+    const int tbH{ 20 };
+
+    // Dry
+    addAndMakeVisible(&m_GainDry);
+    m_GainDry.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    m_GainDry.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
+    m_GainDry.setRange(m_Gain.GetMin(), m_Gain.GetMax(), 0.01f);
+    m_GainDry.setValue(m_Gain.GetDry(), juce::dontSendNotification);
+    m_GainDry.onDragEnd = [this]
+    {
+        m_Gain.SetDry(m_GainDry.getValue());
+    };
+
+    m_GainDryLabel.setFont(juce::Font(18.f, juce::Font::bold));
+    m_GainDryLabel.setText("Dry", juce::dontSendNotification);
+    m_GainDryLabel.setJustificationType(juce::Justification::centredTop);
+    m_GainDryLabel.attachToComponent(&m_GainDry, false);
+
+    // Volume
+    addAndMakeVisible(&m_GainVolume);
+    m_GainVolume.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    m_GainVolume.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
+    m_GainVolume.setRange(m_Gain.GetMin(), m_Gain.GetMax(), 0.01f);
+    m_GainVolume.setValue(m_Gain.GetVolume(), juce::dontSendNotification);
+    m_GainVolume.onDragEnd = [this]
+    {
+        m_Gain.SetVolume(m_GainVolume.getValue());
+    };
+
+    m_GainVolumeLabel.setFont(juce::Font(18.f, juce::Font::bold));
+    m_GainVolumeLabel.setText("Volume", juce::dontSendNotification);
+    m_GainVolumeLabel.setJustificationType(juce::Justification::centredTop);
+    m_GainVolumeLabel.attachToComponent(&m_GainVolume, false);
 }
 
 void MainComponent::initLoadUI()
@@ -151,6 +189,7 @@ void MainComponent::paint (juce::Graphics& g)
 {
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
+    // Background rectangles
     juce::Colour rectColor{ 29, 37, 41};
     g.setColour(rectColor);
 
@@ -166,11 +205,13 @@ void MainComponent::paint (juce::Graphics& g)
     g.fillRect(m_SettingsSpacing + (settingsW + m_SettingsSpacing) * 2, m_SettingsY, settingsW, settingsH);
     g.fillRect(m_SettingsSpacing + (settingsW + m_SettingsSpacing) * 3, m_SettingsY, settingsW, settingsH);
 
+    // Axis names
     const int fontSize{ 20 };
     g.setColour(juce::Colours::black);
     g.setFont(juce::Font(fontSize, juce::Font::bold));
 
     g.drawMultiLineText("GAIN", static_cast<int>(m_SquarePos.x) - 15, static_cast<int>(m_InfoPos.y) + 120, fontSize / 2, juce::Justification::centred);
+    g.drawText("GAIN", 80, m_SettingsY - 30, 100, 50, juce::Justification::bottomLeft);
 }
 
 void MainComponent::resized()
@@ -184,6 +225,7 @@ void MainComponent::resized()
     m_InfoRX.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 88 + offset, 200, 50);
     m_InfoRY.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 110 + offset, 200, 50);
 
+    // Sample load, play and stop
     const int bX{ 21 };
     const int bY{ 60 };
     const int bW{ 135 };
@@ -192,6 +234,14 @@ void MainComponent::resized()
     m_OpenButton.setBounds(bX, bY, bW, bH);
     m_PlayButton.setBounds(bX, bY + bOffset, bW, bH);
     m_StopButton.setBounds(bX, bY + bOffset * 2, bW, bH);
+
+    // Effect settings
+    int const sliderSize2{ 100 };
+    int const bottomY{ m_SettingsY + 100 };
+
+    // Gain settings
+    m_GainDry.setBounds(10, bottomY, sliderSize2, sliderSize2);
+    m_GainVolume.setBounds(105, bottomY, sliderSize2, sliderSize2);
 
     renderKinectTracking();
 }

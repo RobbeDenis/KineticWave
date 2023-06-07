@@ -33,6 +33,7 @@ private:
     void initLoadUI();
     void initKinectTrackingUI();
     void initKinect();
+    void initGainSettingsUI();
 
     void renderKinectTracking();
     void enableUpdate(bool enable);
@@ -51,6 +52,10 @@ private:
 
     // Gain
     effects::Gain m_Gain;
+    juce::Slider m_GainDry;
+    juce::Slider m_GainVolume;
+    juce::Label m_GainDryLabel;
+    juce::Label m_GainVolumeLabel;
 
     // Sample
     juce::AudioFormatManager m_FormatManager;
