@@ -4,14 +4,13 @@
 #include "KSkeletonTracker.h"
 #include "Gain.h"
 
-class MainComponent final : public juce::AudioAppComponent, private juce::Timer, private juce::ChangeListener
+class MainComponent final : public juce::AudioAppComponent, private juce::Timer
 {
     enum TransportState
     {
+        Loading,
         Stopped,
-        Starting,
-        Playing,
-        Stopping
+        Playing
     };
 
 public:
@@ -24,8 +23,6 @@ public:
 
     void paint (juce::Graphics& g) override;
     void resized() override;
-
-    void changeListenerCallback(juce::ChangeBroadcaster* source) override;
 
 private:
     void initInputChannels();
@@ -59,7 +56,7 @@ private:
 
     // Sample
     juce::AudioFormatManager m_FormatManager;
-    juce::AudioTransportSource m_TransportSource;
+    std::unique_ptr <juce::ResamplingAudioSource> m_pResamplingSource;
     std::unique_ptr<juce::AudioFormatReaderSource> m_pReaderSource;
 
     // Loading sample

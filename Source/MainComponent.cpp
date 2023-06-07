@@ -22,13 +22,12 @@ MainComponent::MainComponent()
     initKinectTrackingUI();
     initGainSettingsUI();
 
-    initInputChannels();
     initKinect();
 
     enableUpdate(true);
+    changeState(Loading);
 
     m_FormatManager.registerBasicFormats();
-    m_TransportSource.addChangeListener(this);
 }
 
 void MainComponent::initGainSettingsUI()
@@ -77,13 +76,13 @@ void MainComponent::initLoadUI()
 
     addAndMakeVisible(&m_PlayButton);
     m_PlayButton.setButtonText("Play");
-    m_PlayButton.onClick = [this] { changeState(Starting); };
+    m_PlayButton.onClick = [this] { changeState(Playing); };
     m_PlayButton.setColour(juce::TextButton::buttonColourId, juce::Colours::green);
     m_PlayButton.setEnabled(false);
 
     addAndMakeVisible(&m_StopButton);
     m_StopButton.setButtonText("Stop");
-    m_StopButton.onClick = [this] { changeState(Stopping); };
+    m_StopButton.onClick = [this] { changeState(Stopped); };
     m_StopButton.setColour(juce::TextButton::buttonColourId, juce::Colours::red);
     m_StopButton.setEnabled(false);
 }
@@ -165,24 +164,28 @@ MainComponent::~MainComponent()
 
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
-    m_TransportSource.prepareToPlay(samplesPerBlockExpected, sampleRate);
+    m_pResamplingSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
+    m_pResamplingSource->setResamplingRatio(0.5f);
 }
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
+    if (m_State != Playing)
+        return;
+
     if (m_pReaderSource.get() == nullptr)
     {
         bufferToFill.clearActiveBufferRegion();
         return;
     }
 
-    m_TransportSource.getNextAudioBlock(bufferToFill);
+    m_pResamplingSource->getNextAudioBlock(bufferToFill);
     m_Gain.processBlock(bufferToFill, 1 - m_LeftWrist.y);
 }
 
 void MainComponent::releaseResources()
 {
-    m_TransportSource.releaseResources();
+    m_pResamplingSource->releaseResources();
 }
 
 void MainComponent::paint (juce::Graphics& g)
@@ -248,6 +251,8 @@ void MainComponent::resized()
 
 void MainComponent::loadFile()
 {
+    changeState(Loading);
+
     m_Chooser = std::make_unique<juce::FileChooser>("Select a Wave file",
         juce::File{},
         "*.wav");
@@ -265,11 +270,15 @@ void MainComponent::loadFile()
                 if (reader != nullptr)
                 {
                     auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
-                    m_TransportSource.setSource(newSource.get(), 0, nullptr, reader->sampleRate);
+                    m_pResamplingSource = std::make_unique<juce::ResamplingAudioSource>(newSource.get(), false);
                     m_PlayButton.setEnabled(true);
                     m_pReaderSource.reset(newSource.release());
 
                     m_pReaderSource->setLooping(true);
+                    m_pResamplingSource->setResamplingRatio(0.5f);
+
+                    initInputChannels();
+                    changeState(Stopped);
                 }
             }
         });
@@ -299,17 +308,6 @@ void MainComponent::timerCallback()
     m_InfoLY.setText("LY: " + juce::String::formatted("%f", m_LeftWrist.y), juce::dontSendNotification);
     m_InfoRX.setText("RX: " + juce::String::formatted("%f", m_RightWrist.x), juce::dontSendNotification);
     m_InfoRY.setText("RY: " + juce::String::formatted("%f", m_RightWrist.y), juce::dontSendNotification);
-}
-
-void MainComponent::changeListenerCallback(juce::ChangeBroadcaster* source)
-{
-    if (source == &m_TransportSource)
-    {
-        if (m_TransportSource.isPlaying())
-            changeState(Playing);
-        else
-            changeState(Stopped);
-    }
 }
 
 void MainComponent::renderKinectTracking()
@@ -369,20 +367,16 @@ void MainComponent::changeState(TransportState newState)
         case Stopped:
             m_StopButton.setEnabled(false);
             m_PlayButton.setEnabled(true);
-            m_TransportSource.setPosition(0.0);
-            break;
-
-        case Starting:
-            m_PlayButton.setEnabled(false);
-            m_TransportSource.start();
             break;
 
         case Playing:
+            m_PlayButton.setEnabled(false);
             m_StopButton.setEnabled(true);
             break;
 
-        case Stopping:
-            m_TransportSource.stop();
+        case Loading:
+            m_PlayButton.setEnabled(false);
+            m_StopButton.setEnabled(false);
             break;
         }
     }
