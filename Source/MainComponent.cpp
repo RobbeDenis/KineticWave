@@ -19,7 +19,9 @@ MainComponent::MainComponent()
     , m_MaxPR{ 3.f }
     , m_CurrentMinPR{ 1.f }
     , m_CurrentMaxPR{ 1.f }
-    , m_ConstantChange{ true }
+    , m_UseTreshold{ false }
+    , m_MinTreshHold{ 0.3f }
+    , m_MaxTreshHold{ 0.7f }
 {
     setSize (800, 600);
 
@@ -57,7 +59,7 @@ void MainComponent::initPlayrateSettingsUI()
         float value = m_PRMaxSlider.getValue();
 
         if (value < m_MinPR)
-            m_PRMaxSlider.setValue(m_MinPR + 0.05f);
+            m_PRMinSlider.setValue(value - 0.05f, juce::sendNotification);
 
         setMaxPR(m_PRMaxSlider.getValue());
     };
@@ -66,6 +68,40 @@ void MainComponent::initPlayrateSettingsUI()
     m_PRMaxLabel.setText("Max", juce::dontSendNotification);
     m_PRMaxLabel.setJustificationType(juce::Justification::centredTop);
     m_PRMaxLabel.attachToComponent(&m_PRMaxSlider, false);
+
+    // Min
+    addAndMakeVisible(&m_PRMinSlider);
+    m_PRMinSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    m_PRMinSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
+    m_PRMinSlider.setRange(m_MinPR, m_MaxPR, 0.01f);
+    m_PRMinSlider.setValue(m_CurrentMinPR, juce::sendNotification);
+    m_PRMinSlider.onDragEnd = [this]
+    {
+        float value = m_PRMinSlider.getValue();
+
+        if (value > m_MaxPR)
+            m_PRMaxSlider.setValue(value + 0.05f, juce::dontSendNotification);
+
+        setMinPR(m_PRMinSlider.getValue());
+    };
+
+    m_PRMinLabel.setFont(juce::Font(18.f, juce::Font::bold));
+    m_PRMinLabel.setText("Min", juce::dontSendNotification);
+    m_PRMinLabel.setJustificationType(juce::Justification::centredTop);
+    m_PRMinLabel.attachToComponent(&m_PRMinSlider, false);
+
+    // Toggle
+    addAndMakeVisible(m_EnableTreshold);
+    m_EnableTreshold.setToggleState(m_UseTreshold, juce::dontSendNotification);
+    m_EnableTreshold.onStateChange = [this]
+    {
+        m_UseTreshold = m_EnableTreshold.getToggleState();
+    };
+
+    addAndMakeVisible(m_Treshold);
+    m_Treshold.setFont(juce::Font(18.f, juce::Font::bold));
+    m_Treshold.setText("USE TRESHOLD", juce::dontSendNotification);
+    m_Treshold.setJustificationType(juce::Justification::centredTop);
 }
 
 void MainComponent::initGainSettingsUI()
@@ -217,7 +253,16 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         return;
     }
 
-    if (m_ConstantChange)
+    if (m_UseTreshold)
+    {
+        if (m_LeftWrist.x < m_MinTreshHold)
+            setPlayrate(m_CurrentMinPR);
+        else if (m_LeftWrist.x > m_MaxTreshHold)
+            setPlayrate(m_CurrentMaxPR);
+        else
+            setPlayrate(std::abs(m_CurrentMaxPR - m_CurrentMinPR));
+    }
+    else
     {
         float playrate{ m_CurrentMinPR + (m_CurrentMaxPR - m_CurrentMinPR) * m_LeftWrist.x };
         setPlayrate(playrate);
@@ -254,6 +299,11 @@ void MainComponent::paint (juce::Graphics& g)
     g.fillRect(m_SettingsSpacing + (settingsW + m_SettingsSpacing) * 2, m_SettingsY, settingsW, settingsH);
     g.fillRect(m_SettingsSpacing + (settingsW + m_SettingsSpacing) * 3, m_SettingsY, settingsW, settingsH);
 
+    // Treshold lines
+    g.setColour(juce::Colours::beige);
+    g.fillRect(static_cast<int>(m_SquarePos.x + m_MinTreshHold * m_SquareWidth), static_cast<int>(m_SquarePos.y), 3, m_SquareWidth);
+    g.fillRect(static_cast<int>(m_SquarePos.x + m_MaxTreshHold * m_SquareWidth), static_cast<int>(m_SquarePos.y), 3, m_SquareWidth);
+
     // Axis names
     const int fontSize{ 20 };
     g.setColour(juce::Colours::black);
@@ -261,6 +311,9 @@ void MainComponent::paint (juce::Graphics& g)
 
     g.drawMultiLineText("GAIN", static_cast<int>(m_SquarePos.x) - 15, static_cast<int>(m_InfoPos.y) + 120, fontSize / 2, juce::Justification::centred);
     g.drawText("GAIN", 80, m_SettingsY - 30, 100, 50, juce::Justification::bottomLeft);
+
+    g.drawText("PLAYRATE", static_cast<int>(m_SquarePos.x) + 88, static_cast<int>(m_InfoPos.y) - 28, 100, 50, juce::Justification::bottomLeft);
+    g.drawText("PLAYRATE", 257, m_SettingsY - 30, 100, 50, juce::Justification::bottomLeft);
 }
 
 void MainComponent::resized()
@@ -293,7 +346,10 @@ void MainComponent::resized()
     m_GainVolume.setBounds(104, bottomY, sliderSize2, sliderSize2);
 
     // Playrate settings
-    m_PRMaxSlider.setBounds(310, bottomY, sliderSize2, sliderSize2);
+    m_EnableTreshold.setBounds(290, bottomY - 30, 40, 40);
+    m_Treshold.setBounds(226, bottomY - 55, 145, 40);
+    m_PRMaxSlider.setBounds(297, bottomY + 40, sliderSize2, sliderSize2);
+    m_PRMinSlider.setBounds(210, bottomY + 40, sliderSize2, sliderSize2);
 
     renderKinectTracking();
 }

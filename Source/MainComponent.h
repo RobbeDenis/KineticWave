@@ -52,15 +52,21 @@ private:
     int m_SettingsY;
 
     // Playrate
+    juce::ToggleButton m_EnableTreshold;
+    juce::Label m_Treshold;
     juce::Slider m_PRMaxSlider;
     juce::Label m_PRMaxLabel;
+    juce::Slider m_PRMinSlider;
+    juce::Label m_PRMinLabel;
+    float m_MinTreshHold;
+    float m_MaxTreshHold;
     float m_PRDry;
     float m_Playrate;
     float m_CurrentMinPR;
     float m_CurrentMaxPR;
     float m_MinPR;
     float m_MaxPR;
-    bool m_ConstantChange;
+    bool m_UseTreshold;
 
     // Gain
     effects::Gain m_Gain;
