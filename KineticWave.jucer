@@ -4,6 +4,8 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="n3AOwD" name="KineticWave">
     <GROUP id="{81F0E5F2-DB78-FACB-282A-26875DEAC71B}" name="Source">
+      <FILE id="uFyi7o" name="THD.cpp" compile="1" resource="0" file="Source/THD.cpp"/>
+      <FILE id="aJzpPH" name="THD.h" compile="0" resource="0" file="Source/THD.h"/>
       <FILE id="gx0DLl" name="Gain.cpp" compile="1" resource="0" file="Source/Gain.cpp"/>
       <FILE id="Vweubk" name="Gain.h" compile="0" resource="0" file="Source/Gain.h"/>
       <FILE id="AnLzua" name="KSkeletonTracker.cpp" compile="1" resource="0"

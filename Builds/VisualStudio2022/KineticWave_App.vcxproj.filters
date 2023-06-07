@@ -568,6 +568,9 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\THD.cpp">
+      <Filter>KineticWave\Source</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\Source\Gain.cpp">
       <Filter>KineticWave\Source</Filter>
     </ClCompile>
@@ -2883,6 +2886,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\THD.h">
+      <Filter>KineticWave\Source</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Source\Gain.h">
       <Filter>KineticWave\Source</Filter>
     </ClInclude>

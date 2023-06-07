@@ -33,6 +33,7 @@ MainComponent::MainComponent()
     initKinectTrackingUI();
     initGainSettingsUI();
     initPlayrateSettingsUI();
+    initTHDSettingsUI();
 
     initKinect();
 
@@ -100,8 +101,30 @@ void MainComponent::initPlayrateSettingsUI()
 
     addAndMakeVisible(m_Treshold);
     m_Treshold.setFont(juce::Font(18.f, juce::Font::bold));
-    m_Treshold.setText("USE TRESHOLD", juce::dontSendNotification);
+    m_Treshold.setText("TRESHOLD", juce::dontSendNotification);
     m_Treshold.setJustificationType(juce::Justification::centredTop);
+}
+
+void MainComponent::initTHDSettingsUI()
+{
+    const int tbW{ 40 };
+    const int tbH{ 20 };
+
+    // Max
+    addAndMakeVisible(&m_THDAmount);
+    m_THDAmount.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    m_THDAmount.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
+    m_THDAmount.setRange(0.f, 3.f, 0.01f);
+    m_THDAmount.setValue(0.f, juce::dontSendNotification);
+    m_THDAmount.onDragEnd = [this]
+    {
+        m_THD.SetMax(m_THDAmount.getValue());
+    };
+
+    addAndMakeVisible(m_THDLabel);
+    m_THDLabel.setFont(juce::Font(18.f, juce::Font::bold));
+    m_THDLabel.setText("Max", juce::dontSendNotification);
+    m_THDLabel.setJustificationType(juce::Justification::centredTop);
 }
 
 void MainComponent::initGainSettingsUI()
@@ -264,13 +287,17 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
     }
     else
     {
-        float playrate{ m_CurrentMinPR + (m_CurrentMaxPR - m_CurrentMinPR) * m_LeftWrist.x };
+        const float playrate{ m_CurrentMinPR + (m_CurrentMaxPR - m_CurrentMinPR) * m_LeftWrist.x };
         setPlayrate(playrate);
     }
+
+    const float distortion{ m_THD.GetMax() * m_RightWrist.y };
+    m_THD.SetAmount(distortion);
 
     m_pResamplingSource->setResamplingRatio(m_Playrate);
     m_pResamplingSource->getNextAudioBlock(bufferToFill);
 
+    m_THD.processBlock(bufferToFill);
     m_Gain.processBlock(bufferToFill, 1 - m_LeftWrist.y);
 }
 
@@ -314,6 +341,9 @@ void MainComponent::paint (juce::Graphics& g)
 
     g.drawText("PLAYRATE", static_cast<int>(m_SquarePos.x) + 88, static_cast<int>(m_InfoPos.y) - 28, 100, 50, juce::Justification::bottomLeft);
     g.drawText("PLAYRATE", 257, m_SettingsY - 30, 100, 50, juce::Justification::bottomLeft);
+
+    g.drawMultiLineText("DISTORTION", static_cast<int>(m_SquarePos.x) + m_SquareWidth + m_SquareSpacing - 15, static_cast<int>(m_InfoPos.y) + 55, fontSize / 2, juce::Justification::centred);
+    g.drawText("DISTORTION", 437, m_SettingsY - 30, 250, 50, juce::Justification::bottomLeft);
 }
 
 void MainComponent::resized()
@@ -338,6 +368,7 @@ void MainComponent::resized()
     m_StopButton.setBounds(bX, bY + bOffset * 2, bW, bH);
 
     // Effect settings
+    int const sliderSize1{ 150 };
     int const sliderSize2{ 100 };
     int const bottomY{ m_SettingsY + 100 };
 
@@ -350,6 +381,10 @@ void MainComponent::resized()
     m_Treshold.setBounds(226, bottomY - 55, 145, 40);
     m_PRMaxSlider.setBounds(297, bottomY + 40, sliderSize2, sliderSize2);
     m_PRMinSlider.setBounds(210, bottomY + 40, sliderSize2, sliderSize2);
+
+    // THD settings
+    m_THDAmount.setBounds(450, bottomY + 10, sliderSize2, sliderSize1);
+    m_THDLabel.setBounds(450, bottomY + 10, 100, 50);
 
     renderKinectTracking();
 }

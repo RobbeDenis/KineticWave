@@ -3,6 +3,7 @@
 #include <JuceHeader.h>
 #include "KSkeletonTracker.h"
 #include "Gain.h"
+#include "THD.h"
 
 class MainComponent final : public juce::AudioAppComponent, private juce::Timer
 {
@@ -32,6 +33,7 @@ private:
     void initKinect();
     void initGainSettingsUI();
     void initPlayrateSettingsUI();
+    void initTHDSettingsUI();
 
     void renderKinectTracking();
     void enableUpdate(bool enable);
@@ -67,6 +69,11 @@ private:
     float m_MinPR;
     float m_MaxPR;
     bool m_UseTreshold;
+
+    // THD
+    effects::THD m_THD;
+    juce::Slider m_THDAmount;
+    juce::Label m_THDLabel;
 
     // Gain
     effects::Gain m_Gain;
