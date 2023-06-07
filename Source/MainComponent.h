@@ -52,6 +52,8 @@ private:
     // Settings UI
     int m_SettingsSpacing;
     int m_SettingsY;
+    float m_MinTreshHold;
+    float m_MaxTreshHold;
 
     // Playrate
     juce::ToggleButton m_EnableTreshold;
@@ -60,8 +62,6 @@ private:
     juce::Label m_PRMaxLabel;
     juce::Slider m_PRMinSlider;
     juce::Label m_PRMinLabel;
-    float m_MinTreshHold;
-    float m_MaxTreshHold;
     float m_PRDry;
     float m_Playrate;
     float m_CurrentMinPR;
@@ -72,8 +72,11 @@ private:
 
     // THD
     effects::THD m_THD;
+    juce::ToggleButton m_EnableTresholdTHD;
+    juce::Label m_TresholdTHD;
     juce::Slider m_THDAmount;
     juce::Label m_THDLabel;
+    bool m_UseTresholdTHD;
 
     // Gain
     effects::Gain m_Gain;

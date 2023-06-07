@@ -19,9 +19,10 @@ MainComponent::MainComponent()
     , m_MaxPR{ 3.f }
     , m_CurrentMinPR{ 1.f }
     , m_CurrentMaxPR{ 1.f }
-    , m_UseTreshold{ false }
+    , m_UseTreshold{ true }
     , m_MinTreshHold{ 0.3f }
     , m_MaxTreshHold{ 0.7f }
+    , m_UseTresholdTHD{ false }
 {
     setSize (800, 600);
 
@@ -114,8 +115,8 @@ void MainComponent::initTHDSettingsUI()
     addAndMakeVisible(&m_THDAmount);
     m_THDAmount.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     m_THDAmount.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
-    m_THDAmount.setRange(0.f, 3.f, 0.01f);
-    m_THDAmount.setValue(0.f, juce::dontSendNotification);
+    m_THDAmount.setRange(0.f, m_THD.GetTotalMax(), 0.01f);
+    m_THDAmount.setValue(m_THD.GetAmount(), juce::dontSendNotification);
     m_THDAmount.onDragEnd = [this]
     {
         m_THD.SetMax(m_THDAmount.getValue());
@@ -125,6 +126,19 @@ void MainComponent::initTHDSettingsUI()
     m_THDLabel.setFont(juce::Font(18.f, juce::Font::bold));
     m_THDLabel.setText("Max", juce::dontSendNotification);
     m_THDLabel.setJustificationType(juce::Justification::centredTop);
+
+    // Toggle
+    addAndMakeVisible(m_EnableTresholdTHD);
+    m_EnableTresholdTHD.setToggleState(m_UseTresholdTHD, juce::dontSendNotification);
+    m_EnableTresholdTHD.onStateChange = [this]
+    {
+        m_UseTresholdTHD = m_EnableTresholdTHD.getToggleState();
+    };
+
+    addAndMakeVisible(m_TresholdTHD);
+    m_TresholdTHD.setFont(juce::Font(18.f, juce::Font::bold));
+    m_TresholdTHD.setText("TRESHOLD", juce::dontSendNotification);
+    m_TresholdTHD.setJustificationType(juce::Justification::centredTop);
 }
 
 void MainComponent::initGainSettingsUI()
@@ -291,8 +305,18 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         setPlayrate(playrate);
     }
 
-    const float distortion{ m_THD.GetMax() * m_RightWrist.y };
-    m_THD.SetAmount(distortion);
+    if (m_UseTresholdTHD)
+    {
+        if (m_RightWrist.y < 0.5f)
+            m_THD.SetAmount(0.f);
+        else 
+            m_THD.SetAmount(m_THD.GetMax() * 0.8f);
+    }
+    else
+    {
+        const float distortion{ m_THD.GetMax() * m_RightWrist.y };
+        m_THD.SetAmount(distortion);
+    }
 
     m_pResamplingSource->setResamplingRatio(m_Playrate);
     m_pResamplingSource->getNextAudioBlock(bufferToFill);
@@ -330,6 +354,8 @@ void MainComponent::paint (juce::Graphics& g)
     g.setColour(juce::Colours::beige);
     g.fillRect(static_cast<int>(m_SquarePos.x + m_MinTreshHold * m_SquareWidth), static_cast<int>(m_SquarePos.y), 3, m_SquareWidth);
     g.fillRect(static_cast<int>(m_SquarePos.x + m_MaxTreshHold * m_SquareWidth), static_cast<int>(m_SquarePos.y), 3, m_SquareWidth);
+
+    g.fillRect(static_cast<int>(m_SquarePos.x) + m_SquareWidth + m_SquareSpacing, static_cast<int>(m_SquarePos.y + 0.5f * m_SquareWidth), m_SquareWidth, 3);
 
     // Axis names
     const int fontSize{ 20 };
@@ -378,13 +404,15 @@ void MainComponent::resized()
 
     // Playrate settings
     m_EnableTreshold.setBounds(290, bottomY - 30, 40, 40);
-    m_Treshold.setBounds(226, bottomY - 55, 145, 40);
+    m_Treshold.setBounds(232, bottomY - 55, 145, 40);
     m_PRMaxSlider.setBounds(297, bottomY + 40, sliderSize2, sliderSize2);
     m_PRMinSlider.setBounds(210, bottomY + 40, sliderSize2, sliderSize2);
 
     // THD settings
-    m_THDAmount.setBounds(450, bottomY + 10, sliderSize2, sliderSize1);
-    m_THDLabel.setBounds(450, bottomY + 10, 100, 50);
+    m_TresholdTHD.setBounds(426, bottomY - 55, 145, 40);
+    m_EnableTresholdTHD.setBounds(485, bottomY - 30, 40, 40);
+    m_THDAmount.setBounds(447, bottomY + 10, sliderSize2, sliderSize1);
+    m_THDLabel.setBounds(447, bottomY + 10, 100, 50);
 
     renderKinectTracking();
 }
