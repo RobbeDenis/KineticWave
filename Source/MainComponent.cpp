@@ -14,20 +14,58 @@ MainComponent::MainComponent()
     , m_SmoothingFactor{ 0.2f }
     , m_SettingsSpacing{ 20 }
     , m_SettingsY{ 310 }
+    , m_Playrate{ 1.f }
+    , m_MinPR{ 0.2f }
+    , m_MaxPR{ 3.f }
+    , m_CurrentMinPR{ 1.f }
+    , m_CurrentMaxPR{ 1.f }
+    , m_ConstantChange{ true }
 {
     setSize (800, 600);
+
+    setMaxPR(1.5f);
+    setMinPR(0.5f);
 
     initKinectInfoUI();
     initLoadUI();
     initKinectTrackingUI();
     initGainSettingsUI();
+    initPlayrateSettingsUI();
 
     initKinect();
 
     enableUpdate(true);
     changeState(Loading);
+    setPlayrate(1.f);
 
     m_FormatManager.registerBasicFormats();
+}
+
+void MainComponent::initPlayrateSettingsUI()
+{
+    const int tbW{ 40 };
+    const int tbH{ 20 };
+
+    // Max
+    addAndMakeVisible(&m_PRMaxSlider);
+    m_PRMaxSlider.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    m_PRMaxSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
+    m_PRMaxSlider.setRange(m_MinPR, m_MaxPR, 0.01f);
+    m_PRMaxSlider.setValue(m_CurrentMaxPR, juce::dontSendNotification);
+    m_PRMaxSlider.onDragEnd = [this]
+    {
+        float value = m_PRMaxSlider.getValue();
+
+        if (value < m_MinPR)
+            m_PRMaxSlider.setValue(m_MinPR + 0.05f);
+
+        setMaxPR(m_PRMaxSlider.getValue());
+    };
+
+    m_PRMaxLabel.setFont(juce::Font(18.f, juce::Font::bold));
+    m_PRMaxLabel.setText("Max", juce::dontSendNotification);
+    m_PRMaxLabel.setJustificationType(juce::Justification::centredTop);
+    m_PRMaxLabel.attachToComponent(&m_PRMaxSlider, false);
 }
 
 void MainComponent::initGainSettingsUI()
@@ -165,7 +203,7 @@ MainComponent::~MainComponent()
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
     m_pResamplingSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
-    m_pResamplingSource->setResamplingRatio(0.5f);
+    m_pResamplingSource->setResamplingRatio(m_Playrate);
 }
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
@@ -179,7 +217,15 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         return;
     }
 
+    if (m_ConstantChange)
+    {
+        float playrate{ m_CurrentMinPR + (m_CurrentMaxPR - m_CurrentMinPR) * m_LeftWrist.x };
+        setPlayrate(playrate);
+    }
+
+    m_pResamplingSource->setResamplingRatio(m_Playrate);
     m_pResamplingSource->getNextAudioBlock(bufferToFill);
+
     m_Gain.processBlock(bufferToFill, 1 - m_LeftWrist.y);
 }
 
@@ -244,7 +290,10 @@ void MainComponent::resized()
 
     // Gain settings
     m_GainDry.setBounds(10, bottomY, sliderSize2, sliderSize2);
-    m_GainVolume.setBounds(105, bottomY, sliderSize2, sliderSize2);
+    m_GainVolume.setBounds(104, bottomY, sliderSize2, sliderSize2);
+
+    // Playrate settings
+    m_PRMaxSlider.setBounds(310, bottomY, sliderSize2, sliderSize2);
 
     renderKinectTracking();
 }
@@ -343,6 +392,21 @@ void MainComponent::setUpdateInterval(int intervalMs)
         stopTimer();
         startTimer(m_UpdateIntervalMs);
     }
+}
+
+void MainComponent::setPlayrate(float rate)
+{
+    m_Playrate = std::clamp(rate, m_MinPR, m_MaxPR);
+}
+
+void MainComponent::setMinPR(float rate)
+{
+    m_CurrentMinPR = std::clamp(rate, m_MinPR, m_MaxPR);
+}
+
+void MainComponent::setMaxPR(float rate)
+{
+    m_CurrentMaxPR = std::clamp(rate, m_MinPR, m_MaxPR);
 }
 
 float MainComponent::map(float value, float min, float max, float toMin, float toMax)

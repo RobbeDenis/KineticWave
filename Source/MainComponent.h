@@ -31,11 +31,15 @@ private:
     void initKinectTrackingUI();
     void initKinect();
     void initGainSettingsUI();
+    void initPlayrateSettingsUI();
 
     void renderKinectTracking();
     void enableUpdate(bool enable);
     void setUpdateInterval(int intervalMs);
     void timerCallback() override;
+    void setPlayrate(float rate);
+    void setMinPR(float rate);
+    void setMaxPR(float rate);
 
     void loadFile();
     void changeState(TransportState newState);
@@ -46,6 +50,17 @@ private:
     // Settings UI
     int m_SettingsSpacing;
     int m_SettingsY;
+
+    // Playrate
+    juce::Slider m_PRMaxSlider;
+    juce::Label m_PRMaxLabel;
+    float m_PRDry;
+    float m_Playrate;
+    float m_CurrentMinPR;
+    float m_CurrentMaxPR;
+    float m_MinPR;
+    float m_MaxPR;
+    bool m_ConstantChange;
 
     // Gain
     effects::Gain m_Gain;
