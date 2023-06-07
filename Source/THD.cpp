@@ -1,7 +1,7 @@
 #include "THD.h"
 
 effects::THD::THD()
-    : m_DistortionAmount{ 0.5f }
+    : m_DistortionAmount{ 0.9f }
     , m_MaxDistortion{ 2.3f }
     , m_CurrentDistortionAmount{ 0.f }
 {

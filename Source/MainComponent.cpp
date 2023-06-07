@@ -37,6 +37,7 @@ MainComponent::MainComponent()
     initGainSettingsUI();
     initPlayrateSettingsUI();
     initTHDSettingsUI();
+    initPhaserSettingsUI();
 
     initKinect();
 
@@ -106,6 +107,46 @@ void MainComponent::initPlayrateSettingsUI()
     m_Treshold.setFont(juce::Font(18.f, juce::Font::bold));
     m_Treshold.setText("TRESHOLD", juce::dontSendNotification);
     m_Treshold.setJustificationType(juce::Justification::centredTop);
+}
+
+void MainComponent::initPhaserSettingsUI()
+{
+    const int tbW{ 40 };
+    const int tbH{ 20 };
+
+    // Rate
+    addAndMakeVisible(&m_PhaserRate);
+    m_PhaserRate.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    m_PhaserRate.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
+    m_PhaserRate.setRange(0.f, m_Phaser.GetTotalMax(), 0.01f);
+    m_PhaserRate.setValue(m_Phaser.GetMaxRate(), juce::dontSendNotification);
+    m_PhaserRate.onDragEnd = [this]
+    {
+        m_Phaser.SetMax(m_PhaserRate.getValue());
+    };
+
+    addAndMakeVisible(m_PhaserRateLabel);
+    m_PhaserRateLabel.setFont(juce::Font(18.f, juce::Font::bold));
+    m_PhaserRateLabel.setText("Rate", juce::dontSendNotification);
+    m_PhaserRateLabel.setJustificationType(juce::Justification::centredTop);
+    m_PhaserRateLabel.attachToComponent(&m_PhaserRate, false);
+
+    // Depth
+    addAndMakeVisible(&m_Depth);
+    m_Depth.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    m_Depth.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
+    m_Depth.setRange(0.f, 1.f, 0.01f);
+    m_Depth.setValue(m_Phaser.GetDepth(), juce::dontSendNotification);
+    m_Depth.onDragEnd = [this]
+    {
+        m_Phaser.SetDepth(m_Depth.getValue());
+    };
+
+    addAndMakeVisible(m_DepthLabel);
+    m_DepthLabel.setFont(juce::Font(18.f, juce::Font::bold));
+    m_DepthLabel.setText("Depth", juce::dontSendNotification);
+    m_DepthLabel.setJustificationType(juce::Justification::centredTop);
+    m_DepthLabel.attachToComponent(&m_Depth, false);
 }
 
 void MainComponent::initTHDSettingsUI()
@@ -283,6 +324,8 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 {
     m_pResamplingSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
     m_pResamplingSource->setResamplingRatio(m_Playrate);
+    m_Phaser.prepareToPlay(samplesPerBlockExpected, sampleRate);
+    m_Phaser.initVoices();
 }
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
@@ -328,6 +371,8 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
     m_pResamplingSource->getNextAudioBlock(bufferToFill);
 
     m_THD.processBlock(bufferToFill);
+    m_Phaser.SetRate(m_Phaser.GetMaxRate() * (1.f - m_RightWrist.x));
+    m_Phaser.processBlock(bufferToFill);
     m_Gain.processBlock(bufferToFill, 1 - m_LeftWrist.y);
 }
 
@@ -344,7 +389,7 @@ void MainComponent::paint (juce::Graphics& g)
     juce::Colour rectColor{ 29, 37, 41};
     g.setColour(rectColor);
 
-    g.fillRect(static_cast<int>(m_InfoPos.x) + 7, static_cast<int>(m_InfoPos.y) + 165, 145, 125);
+    g.fillRect(static_cast<int>(m_InfoPos.x) + 11, static_cast<int>(m_InfoPos.y) + 165, 145, 125);
 
     g.fillRect(static_cast<int>(m_SquarePos.x), static_cast<int>(m_SquarePos.y), m_SquareWidth, m_SquareWidth);
     g.fillRect(static_cast<int>(m_SquarePos.x) + m_SquareWidth + m_SquareSpacing, static_cast<int>(m_SquarePos.y), m_SquareWidth, m_SquareWidth);
@@ -376,6 +421,9 @@ void MainComponent::paint (juce::Graphics& g)
 
     g.drawMultiLineText("DISTORTION", static_cast<int>(m_SquarePos.x) + m_SquareWidth + m_SquareSpacing - 15, static_cast<int>(m_InfoPos.y) + 55, fontSize / 2, juce::Justification::centred);
     g.drawText("DISTORTION", 437, m_SettingsY - 30, 250, 50, juce::Justification::bottomLeft);
+
+    g.drawText("PHASE", static_cast<int>(m_SquarePos.x) + m_SquareWidth + m_SquareSpacing + 102, static_cast<int>(m_InfoPos.y) - 28, 100, 50, juce::Justification::bottomLeft);
+    g.drawText("PHASE", 660, m_SettingsY - 30, 100, 50, juce::Justification::bottomLeft);
 }
 
 void MainComponent::resized()
@@ -383,15 +431,15 @@ void MainComponent::resized()
     // Kinect info
     const int offset{ 135 };
     const int offsetX{ 12 };
-    m_ConnectedLabel.setBounds(m_InfoPos.x + 16, m_InfoPos.y + 1, 200, 50);
+    m_ConnectedLabel.setBounds(m_InfoPos.x + 19, m_InfoPos.y + 1, 200, 50);
     m_InfoLX.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 22 + offset, 200, 50);
     m_InfoLY.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 44 + offset, 200, 50);
     m_InfoRX.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 88 + offset, 200, 50);
     m_InfoRY.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 110 + offset, 200, 50);
 
     // Sample load, play and stop
-    const int bX{ 21 };
-    const int bY{ 60 };
+    const int bX{ 24 };
+    const int bY{ 65 };
     const int bW{ 135 };
     const int bH{ 26 };
     const int bOffset{ bH + 5 };
@@ -419,6 +467,10 @@ void MainComponent::resized()
     m_EnableTresholdTHD.setBounds(485, bottomY - 30, 40, 40);
     m_THDAmount.setBounds(447, bottomY + 10, sliderSize2, sliderSize1);
     m_THDLabel.setBounds(447, bottomY + 10, 100, 50);
+
+    // Phaser settings
+    m_PhaserRate.setBounds(600, bottomY + 40, sliderSize2, sliderSize2);
+    m_Depth.setBounds(687, bottomY + 40, sliderSize2, sliderSize2);
 
     renderKinectTracking();
 }

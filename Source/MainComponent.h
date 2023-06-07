@@ -4,6 +4,7 @@
 #include "KSkeletonTracker.h"
 #include "Gain.h"
 #include "THD.h"
+#include "Phaser.h"
 
 class MainComponent final : public juce::AudioAppComponent, private juce::Timer
 {
@@ -34,6 +35,7 @@ private:
     void initGainSettingsUI();
     void initPlayrateSettingsUI();
     void initTHDSettingsUI();
+    void initPhaserSettingsUI();
 
     void renderKinectTracking();
     void enableUpdate(bool enable);
@@ -69,6 +71,13 @@ private:
     float m_MinPR;
     float m_MaxPR;
     bool m_UseTreshold;
+
+    // Phaser
+    effects::Phaser m_Phaser;
+    juce::Slider m_PhaserRate;
+    juce::Label m_PhaserRateLabel;
+    juce::Slider m_Depth;
+    juce::Label m_DepthLabel;
 
     // THD
     effects::THD m_THD;

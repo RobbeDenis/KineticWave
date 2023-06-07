@@ -17,6 +17,8 @@
       <FILE id="LoQebw" name="MainComponent.cpp" compile="1" resource="0"
             file="Source/MainComponent.cpp"/>
     </GROUP>
+    <FILE id="Blv3Vj" name="Phaser.cpp" compile="1" resource="0" file="Source/Phaser.cpp"/>
+    <FILE id="SmYMHK" name="Phaser.h" compile="0" resource="0" file="Source/Phaser.h"/>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
   <EXPORTFORMATS>

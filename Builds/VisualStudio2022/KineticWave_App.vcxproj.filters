@@ -607,6 +607,9 @@
     <ClCompile Include="..\..\Source\MainComponent.cpp">
       <Filter>KineticWave\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\Phaser.cpp">
+      <Filter>KineticWave</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\..\Programs\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.cpp">
       <Filter>JUCE Modules\juce_audio_basics\audio_play_head</Filter>
     </ClCompile>
@@ -3035,6 +3038,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Source\MainComponent.h">
       <Filter>KineticWave\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\Phaser.h">
+      <Filter>KineticWave</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\..\Programs\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h">
       <Filter>JUCE Modules\juce_audio_basics\audio_play_head</Filter>

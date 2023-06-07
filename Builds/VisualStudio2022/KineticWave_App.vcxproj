@@ -158,6 +158,7 @@
     <ClCompile Include="..\..\Source\KSkeletonTracker.cpp"/>
     <ClCompile Include="..\..\Source\Main.cpp"/>
     <ClCompile Include="..\..\Source\MainComponent.cpp"/>
+    <ClCompile Include="..\..\Source\Phaser.cpp"/>
     <ClCompile Include="..\..\..\..\Programs\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -2429,6 +2430,7 @@
     <ClInclude Include="..\..\Source\Gain.h"/>
     <ClInclude Include="..\..\Source\KSkeletonTracker.h"/>
     <ClInclude Include="..\..\Source\MainComponent.h"/>
+    <ClInclude Include="..\..\Source\Phaser.h"/>
     <ClInclude Include="..\..\..\..\Programs\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h"/>
     <ClInclude Include="..\..\..\..\Programs\JUCE\modules\juce_audio_basics\buffers\juce_AudioChannelSet.h"/>
     <ClInclude Include="..\..\..\..\Programs\JUCE\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h"/>
