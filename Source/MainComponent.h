@@ -45,7 +45,7 @@ private:
     void setMinPR(float rate);
     void setMaxPR(float rate);
 
-    void loadFile();
+    void loadFile(bool second);
     void changeState(TransportState newState);
 
     float map(float value, float min, float max, float toMin, float toMax);
@@ -102,6 +102,7 @@ private:
     // Loading sample
     std::unique_ptr<juce::FileChooser> m_Chooser;
     juce::TextButton m_OpenButton;
+    juce::TextButton m_OpenButton2;
     juce::TextButton m_PlayButton;
     juce::TextButton m_StopButton;
     TransportState m_State;

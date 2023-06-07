@@ -167,7 +167,7 @@ void MainComponent::initTHDSettingsUI()
 
     addAndMakeVisible(m_THDLabel);
     m_THDLabel.setFont(juce::Font(18.f, juce::Font::bold));
-    m_THDLabel.setText("Max", juce::dontSendNotification);
+    m_THDLabel.setText("Disto", juce::dontSendNotification);
     m_THDLabel.setJustificationType(juce::Justification::centredTop);
 
     // Toggle
@@ -189,7 +189,7 @@ void MainComponent::initGainSettingsUI()
     const int tbW{ 40 };
     const int tbH{ 20 };
 
-    // Dry
+    // Min
     addAndMakeVisible(&m_GainDry);
     m_GainDry.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     m_GainDry.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
@@ -201,7 +201,7 @@ void MainComponent::initGainSettingsUI()
     };
 
     m_GainDryLabel.setFont(juce::Font(18.f, juce::Font::bold));
-    m_GainDryLabel.setText("Dry", juce::dontSendNotification);
+    m_GainDryLabel.setText("Min", juce::dontSendNotification);
     m_GainDryLabel.setJustificationType(juce::Justification::centredTop);
     m_GainDryLabel.attachToComponent(&m_GainDry, false);
 
@@ -225,8 +225,12 @@ void MainComponent::initGainSettingsUI()
 void MainComponent::initLoadUI()
 {
     addAndMakeVisible(&m_OpenButton);
-    m_OpenButton.setButtonText("Add sample");
-    m_OpenButton.onClick = [this] { loadFile(); };
+    m_OpenButton.setButtonText("sample 1");
+    m_OpenButton.onClick = [this] { loadFile(false); };
+
+    addAndMakeVisible(&m_OpenButton2);
+    m_OpenButton2.setButtonText("sample 2");
+    m_OpenButton2.onClick = [this] { loadFile(true); };
 
     addAndMakeVisible(&m_PlayButton);
     m_PlayButton.setButtonText("Play");
@@ -430,12 +434,12 @@ void MainComponent::resized()
 {
     // Kinect info
     const int offset{ 135 };
-    const int offsetX{ 12 };
+    const int offsetX{ 15 };
     m_ConnectedLabel.setBounds(m_InfoPos.x + 19, m_InfoPos.y + 1, 200, 50);
-    m_InfoLX.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 22 + offset, 200, 50);
-    m_InfoLY.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 44 + offset, 200, 50);
-    m_InfoRX.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 88 + offset, 200, 50);
-    m_InfoRY.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 110 + offset, 200, 50);
+    m_InfoLX.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 30 + offset, 200, 50);
+    m_InfoLY.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 52 + offset, 200, 50);
+    m_InfoRX.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 80 + offset, 200, 50);
+    m_InfoRY.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 102 + offset, 200, 50);
 
     // Sample load, play and stop
     const int bX{ 24 };
@@ -443,7 +447,8 @@ void MainComponent::resized()
     const int bW{ 135 };
     const int bH{ 26 };
     const int bOffset{ bH + 5 };
-    m_OpenButton.setBounds(bX, bY, bW, bH);
+    const int loadOffset{ 3 };
+    m_OpenButton.setBounds(bX, bY, bW / 2 - loadOffset, bH);
     m_PlayButton.setBounds(bX, bY + bOffset, bW, bH);
     m_StopButton.setBounds(bX, bY + bOffset * 2, bW, bH);
 
@@ -469,13 +474,13 @@ void MainComponent::resized()
     m_THDLabel.setBounds(447, bottomY + 10, 100, 50);
 
     // Phaser settings
-    m_PhaserRate.setBounds(600, bottomY + 40, sliderSize2, sliderSize2);
-    m_Depth.setBounds(687, bottomY + 40, sliderSize2, sliderSize2);
+    m_PhaserRate.setBounds(600, bottomY, sliderSize2, sliderSize2);
+    m_Depth.setBounds(687, bottomY, sliderSize2, sliderSize2);
 
     renderKinectTracking();
 }
 
-void MainComponent::loadFile()
+void MainComponent::loadFile(bool second)
 {
     changeState(Loading);
 
@@ -485,7 +490,7 @@ void MainComponent::loadFile()
 
     auto chooserFlags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
 
-    m_Chooser->launchAsync(chooserFlags, [this](const juce::FileChooser& fc)
+    m_Chooser->launchAsync(chooserFlags, [this, second](const juce::FileChooser& fc)
         {
             auto file = fc.getResult();
 
@@ -495,13 +500,20 @@ void MainComponent::loadFile()
 
                 if (reader != nullptr)
                 {
-                    auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
-                    m_pResamplingSource = std::make_unique<juce::ResamplingAudioSource>(newSource.get(), false);
-                    m_PlayButton.setEnabled(true);
-                    m_pReaderSource.reset(newSource.release());
+                    if (second)
+                    {
 
-                    m_pReaderSource->setLooping(true);
-                    m_pResamplingSource->setResamplingRatio(0.5f);
+                    }
+                    else
+                    {
+                        auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
+                        m_pResamplingSource = std::make_unique<juce::ResamplingAudioSource>(newSource.get(), false);
+                        m_PlayButton.setEnabled(true);
+                        m_pReaderSource.reset(newSource.release());
+
+                        m_pReaderSource->setLooping(true);
+                        m_pResamplingSource->setResamplingRatio(0.5f);
+                    }
 
                     initInputChannels();
                     changeState(Stopped);
