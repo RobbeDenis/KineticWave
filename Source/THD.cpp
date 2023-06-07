@@ -2,7 +2,7 @@
 
 effects::THD::THD()
     : m_DistortionAmount{ 0.5f }
-    , m_MaxDistortion{ 1.5f }
+    , m_MaxDistortion{ 2.3f }
     , m_CurrentDistortionAmount{ 0.f }
 {
 }
@@ -27,10 +27,7 @@ void effects::THD::processBlock(const juce::AudioSourceChannelInfo& info)
             const float scaledSample{ sample * std::clamp(1.f - (m_DistortionAmount / m_MaxDistortion), 0.f, 1.f) };
             const float finalSample{ distortedSample + scaledSample };
 
-            if (sampleIdx == 0)
-                data[sampleIdx] = LPF(-1.f, finalSample);
-            else
-                data[sampleIdx] = LPF(data[sampleIdx - 1], finalSample);
+            data[sampleIdx] = finalSample;
         }
     }
 }
@@ -79,12 +76,4 @@ float effects::THD::CalculateDistortedSample(float sample)
     }
 
     return distortedSample;
-}
-
-float effects::THD::LPF(float prevSample, float sample)
-{
-    float output{ sample };
-
-
-    return output;
 }

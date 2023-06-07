@@ -23,6 +23,8 @@ MainComponent::MainComponent()
     , m_MinTreshHold{ 0.3f }
     , m_MaxTreshHold{ 0.7f }
     , m_UseTresholdTHD{ false }
+    , m_IChannels{ 0 }
+    , m_OChannels{ 0 }
 {
     setSize (800, 600);
 
@@ -260,10 +262,14 @@ void MainComponent::initInputChannels()
         && !juce::RuntimePermissions::isGranted(juce::RuntimePermissions::recordAudio))
     {
         juce::RuntimePermissions::request(juce::RuntimePermissions::recordAudio,
-            [&](bool granted) { setAudioChannels(granted ? 2 : 0, 2); });
+            [&](bool granted) { setAudioChannels(granted ? 2 : 0, 2);
+                                    m_IChannels = granted ? 2 : 0;
+                                    m_OChannels = 2; });
     }
     else
     {
+        m_IChannels = 2;
+        m_OChannels = 2;
         setAudioChannels(2, 2);
     }
 }

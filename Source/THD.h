@@ -21,7 +21,6 @@ namespace effects
 
 	private:
 		float CalculateDistortedSample(float sample);
-		float LPF(float prevSample, float sample);
 
 		float m_DistortionAmount;
 		float m_CurrentDistortionAmount;

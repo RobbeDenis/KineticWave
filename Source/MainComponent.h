@@ -123,6 +123,8 @@ private:
 
     // Other
     float m_SmoothingFactor;
+    int m_IChannels;
+    int m_OChannels;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
