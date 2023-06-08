@@ -1,4 +1,5 @@
 #include "KSkeletonTracker.h"
+#include <algorithm>
 
 KSkeletonTracker::KSkeletonTracker()
     : m_pNuiSensor{nullptr}
@@ -72,7 +73,7 @@ void KSkeletonTracker::CopySkeletonData(const NUI_SKELETON_DATA& skeleton)
 
 void KSkeletonTracker::SetAngle(LONG angleDegrees)
 {
-    m_pNuiSensor->NuiCameraElevationSetAngle(angleDegrees);
+    m_pNuiSensor->NuiCameraElevationSetAngle(std::clamp(angleDegrees, static_cast<LONG>(0), static_cast <LONG>(30)));
 }
 
 void KSkeletonTracker::AddJointForTracking(unsigned joint)

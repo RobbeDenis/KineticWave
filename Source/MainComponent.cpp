@@ -31,6 +31,7 @@ MainComponent::MainComponent()
     , m_D2{ false }
     , m_P1{ true }
     , m_P2{ true }
+    , m_KinectAngle{ static_cast<LONG>(0) }
 {
     setSize (800, 600);
 
@@ -361,6 +362,21 @@ void MainComponent::initKinectInfoUI()
     m_InfoRY.setFont(juce::Font(20.f, juce::Font::bold));
     m_InfoRY.setText("RY", juce::dontSendNotification);
     m_InfoRY.setColour(juce::Label::textColourId, juce::Colours::yellow);
+
+    addAndMakeVisible(m_AngleLabel);
+    m_AngleLabel.setFont(juce::Font(10.f, juce::Font::bold));
+    m_AngleLabel.setText("kinect                     angle", juce::dontSendNotification); // size 10, spaces 21
+
+    addAndMakeVisible(m_KinectAngleSlider);
+    m_KinectAngleSlider.setNumDecimalPlacesToDisplay(0);
+    m_KinectAngleSlider.setSliderStyle(juce::Slider::SliderStyle::LinearBar);
+    m_KinectAngleSlider.setRange(0, 20, 1);
+    m_KinectAngleSlider.setValue(m_KinectAngle, juce::dontSendNotification);
+    m_KinectAngleSlider.onDragEnd = [this]
+    {
+        m_KinectAngle = m_KinectAngleSlider.getValue();
+        m_pTracker->SetAngle(m_KinectAngle);
+    };
 }
 
 void MainComponent::initKinect()
@@ -372,7 +388,7 @@ void MainComponent::initKinect()
         m_ConnectedLabel.setText("connected", juce::dontSendNotification);
         m_ConnectedLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
 
-        m_pTracker->SetAngle(10);
+        m_pTracker->SetAngle(m_KinectAngle);
         m_pTracker->AddJointForTracking(NUI_SKELETON_POSITION_WRIST_LEFT);
         m_pTracker->AddJointForTracking(NUI_SKELETON_POSITION_WRIST_RIGHT);
     }
@@ -599,7 +615,9 @@ void MainComponent::resized()
     // Kinect info
     const int offset{ 135 };
     const int offsetX{ 15 };
-    m_ConnectedLabel.setBounds(m_InfoPos.x + 19, m_InfoPos.y + 1, 200, 50);
+    m_ConnectedLabel.setBounds(m_InfoPos.x + 19, m_InfoPos.y - 2, 200, 50);
+    m_KinectAngleSlider.setBounds(m_InfoPos.x + 15, m_InfoPos.y + 38, 133, 23);
+    m_AngleLabel.setBounds(m_InfoPos.x + 20, m_InfoPos.y + 40, 200, 20);
     m_InfoLX.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 30 + offset, 200, 50);
     m_InfoLY.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 52 + offset, 200, 50);
     m_InfoRX.setBounds(m_InfoPos.x + offsetX, m_InfoPos.y + 80 + offset, 200, 50);

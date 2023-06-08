@@ -52,6 +52,8 @@ private:
     float map(float value, float min, float max, float toMin, float toMax);
     void smooth(float &input, float target);
 
+
+
     // Settings UI
     int m_SettingsSpacing;
     int m_SettingsY;
@@ -131,12 +133,15 @@ private:
     std::unique_ptr<KSkeletonTracker> m_pTracker;
     Vector4 m_LeftWrist;
     Vector4 m_RightWrist;
+    LONG m_KinectAngle;
+    juce::Slider m_KinectAngleSlider;
     float m_UpdateIntervalMs;
     bool m_EnableUpdate;
 
     // Kinect info UI
     Vector4 m_InfoPos;
     juce::Label m_ConnectedLabel;
+    juce::Label m_AngleLabel;
     juce::Label m_InfoLX;
     juce::Label m_InfoLY;
     juce::Label m_InfoRX;
