@@ -59,6 +59,8 @@ private:
 
     // Playrate
     juce::ToggleButton m_EnableTreshold;
+    juce::ToggleButton m_TogglePRS1;
+    juce::ToggleButton m_TogglePRS2;
     juce::Label m_Treshold;
     juce::Slider m_PRMaxSlider;
     juce::Label m_PRMaxLabel;
@@ -84,10 +86,14 @@ private:
     // THD
     effects::THD m_THD;
     juce::ToggleButton m_EnableTresholdTHD;
+    juce::ToggleButton m_ToggleD1;
+    juce::ToggleButton m_ToggleD2;
     juce::Label m_TresholdTHD;
     juce::Slider m_THDAmount;
     juce::Label m_THDLabel;
     bool m_UseTresholdTHD;
+    bool m_D1;
+    bool m_D2;
 
     // Gain
     effects::Gain m_Gain;

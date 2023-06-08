@@ -26,7 +26,9 @@ MainComponent::MainComponent()
     , m_IChannels{ 0 }
     , m_OChannels{ 0 }
     , m_PRS1{ true }
-    , m_PRS2{ false }
+    , m_PRS2{ true }
+    , m_D1{ true }
+    , m_D2{ false }
 {
     setSize (800, 600);
 
@@ -109,6 +111,21 @@ void MainComponent::initPlayrateSettingsUI()
     m_Treshold.setFont(juce::Font(18.f, juce::Font::bold));
     m_Treshold.setText("TRESHOLD", juce::dontSendNotification);
     m_Treshold.setJustificationType(juce::Justification::centredTop);
+
+    // Toggle PRS
+    addAndMakeVisible(m_TogglePRS1);
+    m_TogglePRS1.setToggleState(m_PRS1, juce::dontSendNotification);
+    m_TogglePRS1.onStateChange = [this]
+    {
+        m_PRS1 = m_TogglePRS1.getToggleState();
+    };
+
+    addAndMakeVisible(m_TogglePRS2);
+    m_TogglePRS2.setToggleState(m_PRS2, juce::dontSendNotification);
+    m_TogglePRS2.onStateChange = [this]
+    {
+        m_PRS2 = m_TogglePRS2.getToggleState();
+    };
 }
 
 void MainComponent::initPhaserSettingsUI()
@@ -184,6 +201,21 @@ void MainComponent::initTHDSettingsUI()
     m_TresholdTHD.setFont(juce::Font(18.f, juce::Font::bold));
     m_TresholdTHD.setText("TRESHOLD", juce::dontSendNotification);
     m_TresholdTHD.setJustificationType(juce::Justification::centredTop);
+
+    // Toggle D
+    addAndMakeVisible(m_ToggleD1);
+    m_ToggleD1.setToggleState(m_D1, juce::dontSendNotification);
+    m_ToggleD1.onStateChange = [this]
+    {
+        m_D1 = m_ToggleD1.getToggleState();
+    };
+
+    addAndMakeVisible(m_ToggleD2);
+    m_ToggleD2.setToggleState(m_D2, juce::dontSendNotification);
+    m_ToggleD2.onStateChange = [this]
+    {
+        m_D2 = m_ToggleD2.getToggleState();
+    };
 }
 
 void MainComponent::initGainSettingsUI()
@@ -207,7 +239,7 @@ void MainComponent::initGainSettingsUI()
     m_GainDryLabel.setJustificationType(juce::Justification::centredTop);
     m_GainDryLabel.attachToComponent(&m_GainDry, false);
 
-    // Volume
+    // Volume 1
     addAndMakeVisible(&m_GainVolume);
     m_GainVolume.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     m_GainVolume.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
@@ -219,6 +251,7 @@ void MainComponent::initGainSettingsUI()
     m_GainVolumeLabel.setJustificationType(juce::Justification::centredTop);
     m_GainVolumeLabel.attachToComponent(&m_GainVolume, false);
 
+    // Volume 2
     addAndMakeVisible(&m_GainVolume2);
     m_GainVolume2.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     m_GainVolume2.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
@@ -409,6 +442,10 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
             m_pResamplingSource->setResamplingRatio(1.f);
 
         m_pResamplingSource->getNextAudioBlock(buffer1);
+
+        if(m_D1)
+            m_THD.processBlock(buffer1);
+
         m_Gain.SetVolume(m_GainVolume.getValue());
         m_Gain.processBlock(buffer1, 1 - m_LeftWrist.y);
     }
@@ -422,6 +459,10 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
 
         m_pResamplingSource2->getNextAudioBlock(buffer2);
+
+        if(m_D2)
+            m_THD.processBlock(buffer2);
+
         m_Gain.SetVolume(m_GainVolume2.getValue());
         m_Gain.processBlock(buffer2, m_LeftWrist.y);
     }
@@ -443,7 +484,6 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         }
     }
 
-    //m_THD.processBlock(bufferToFill);
     //m_Phaser.SetRate(m_Phaser.GetMaxRate() * (1.f - m_RightWrist.x));
     //m_Phaser.processBlock(bufferToFill);
 }
@@ -530,6 +570,7 @@ void MainComponent::resized()
     int const sliderSize2{ 100 };
     int const sliderSize3{ 85 };
     int const bottomY{ m_SettingsY + 100 };
+    int const toggleSpace{ 140 };
 
     // Gain settings
     m_GainDry.setBounds(10, bottomY - 5, sliderSize2, sliderSize2);
@@ -541,12 +582,16 @@ void MainComponent::resized()
     m_Treshold.setBounds(232, bottomY - 55, 145, 40);
     m_PRMaxSlider.setBounds(297, bottomY + 40, sliderSize2, sliderSize2);
     m_PRMinSlider.setBounds(210, bottomY + 40, sliderSize2, sliderSize2);
+    m_TogglePRS1.setBounds(220, m_SettingsY - 5, 40, 40);
+    m_TogglePRS2.setBounds(220 + toggleSpace, m_SettingsY - 5, 40, 40);
 
     // THD settings
     m_TresholdTHD.setBounds(426, bottomY - 55, 145, 40);
     m_EnableTresholdTHD.setBounds(485, bottomY - 30, 40, 40);
     m_THDAmount.setBounds(447, bottomY + 10, sliderSize2, sliderSize1);
     m_THDLabel.setBounds(447, bottomY + 10, 100, 50);
+    m_ToggleD1.setBounds(415 - 3, m_SettingsY - 5, 40, 40);
+    m_ToggleD2.setBounds(415 + toggleSpace + 3, m_SettingsY - 5, 40, 40);
 
     // Phaser settings
     m_PhaserRate.setBounds(600, bottomY, sliderSize2, sliderSize2);
