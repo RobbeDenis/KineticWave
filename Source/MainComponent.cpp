@@ -396,12 +396,14 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
     {
         m_pResamplingSource->setResamplingRatio(m_Playrate);
         m_pResamplingSource->getNextAudioBlock(buffer1);
+        m_Gain.processBlock(buffer1, 1 - m_LeftWrist.y);
     }
 
     if (m_pResamplingSource2 != nullptr)
     {
         m_pResamplingSource2->setResamplingRatio(m_Playrate);
         m_pResamplingSource2->getNextAudioBlock(buffer2);
+        m_Gain.processBlock(buffer2, m_LeftWrist.y);
     }
 
     for (int channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
@@ -412,14 +414,18 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
         for (int sample = 0; sample < bufferToFill.numSamples; ++sample)
         {
-            outputData[sample] = buffer1Data[sample] + buffer2Data[sample];
+            if (m_pResamplingSource == nullptr)
+                outputData[sample] = buffer2Data[sample];
+            else if(m_pResamplingSource2 == nullptr)
+                outputData[sample] = buffer1Data[sample];
+            else
+                outputData[sample] = buffer1Data[sample] + buffer2Data[sample];
         }
     }
 
-    m_THD.processBlock(bufferToFill);
-    m_Phaser.SetRate(m_Phaser.GetMaxRate() * (1.f - m_RightWrist.x));
-    m_Phaser.processBlock(bufferToFill);
-    m_Gain.processBlock(bufferToFill, 1 - m_LeftWrist.y);
+    //m_THD.processBlock(bufferToFill);
+    //m_Phaser.SetRate(m_Phaser.GetMaxRate() * (1.f - m_RightWrist.x));
+    //m_Phaser.processBlock(bufferToFill);
 }
 
 void MainComponent::releaseResources()
