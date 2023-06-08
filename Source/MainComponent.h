@@ -71,6 +71,8 @@ private:
     float m_MinPR;
     float m_MaxPR;
     bool m_UseTreshold;
+    bool m_PRS1;
+    bool m_PRS2;
 
     // Phaser
     effects::Phaser m_Phaser;
@@ -90,9 +92,11 @@ private:
     // Gain
     effects::Gain m_Gain;
     juce::Slider m_GainDry;
-    juce::Slider m_GainVolume;
     juce::Label m_GainDryLabel;
+    juce::Slider m_GainVolume;
+    juce::Slider m_GainVolume2;
     juce::Label m_GainVolumeLabel;
+    juce::Label m_GainVolumeLabel2;
 
     // Sample
     juce::AudioFormatManager m_FormatManager;

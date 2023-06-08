@@ -25,6 +25,8 @@ MainComponent::MainComponent()
     , m_UseTresholdTHD{ false }
     , m_IChannels{ 0 }
     , m_OChannels{ 0 }
+    , m_PRS1{ true }
+    , m_PRS2{ false }
 {
     setSize (800, 600);
 
@@ -195,7 +197,7 @@ void MainComponent::initGainSettingsUI()
     m_GainDry.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
     m_GainDry.setRange(m_Gain.GetMin(), m_Gain.GetMax(), 0.01f);
     m_GainDry.setValue(m_Gain.GetDry(), juce::dontSendNotification);
-    m_GainDry.onDragEnd = [this]
+    m_GainDry.onValueChange = [this]
     {
         m_Gain.SetDry(m_GainDry.getValue());
     };
@@ -211,15 +213,22 @@ void MainComponent::initGainSettingsUI()
     m_GainVolume.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
     m_GainVolume.setRange(m_Gain.GetMin(), m_Gain.GetMax(), 0.01f);
     m_GainVolume.setValue(m_Gain.GetVolume(), juce::dontSendNotification);
-    m_GainVolume.onDragEnd = [this]
-    {
-        m_Gain.SetVolume(m_GainVolume.getValue());
-    };
 
-    m_GainVolumeLabel.setFont(juce::Font(18.f, juce::Font::bold));
-    m_GainVolumeLabel.setText("Volume", juce::dontSendNotification);
+    m_GainVolumeLabel.setFont(juce::Font(15.f, juce::Font::bold));
+    m_GainVolumeLabel.setText("Sample 1", juce::dontSendNotification);
     m_GainVolumeLabel.setJustificationType(juce::Justification::centredTop);
     m_GainVolumeLabel.attachToComponent(&m_GainVolume, false);
+
+    addAndMakeVisible(&m_GainVolume2);
+    m_GainVolume2.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    m_GainVolume2.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
+    m_GainVolume2.setRange(m_Gain.GetMin(), m_Gain.GetMax(), 0.01f);
+    m_GainVolume2.setValue(m_Gain.GetVolume(), juce::dontSendNotification);
+
+    m_GainVolumeLabel2.setFont(juce::Font(15.f, juce::Font::bold));
+    m_GainVolumeLabel2.setText("Sample 2", juce::dontSendNotification);
+    m_GainVolumeLabel2.setJustificationType(juce::Justification::centredTop);
+    m_GainVolumeLabel2.attachToComponent(&m_GainVolume2, false);
 }
 
 void MainComponent::initLoadUI()
@@ -394,15 +403,26 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
     if (m_pResamplingSource != nullptr)
     {
-        m_pResamplingSource->setResamplingRatio(m_Playrate);
+        if(m_PRS1)
+            m_pResamplingSource->setResamplingRatio(m_Playrate);
+        else
+            m_pResamplingSource->setResamplingRatio(1.f);
+
         m_pResamplingSource->getNextAudioBlock(buffer1);
+        m_Gain.SetVolume(m_GainVolume.getValue());
         m_Gain.processBlock(buffer1, 1 - m_LeftWrist.y);
     }
 
     if (m_pResamplingSource2 != nullptr)
     {
-        m_pResamplingSource2->setResamplingRatio(m_Playrate);
+        if(m_PRS2)
+            m_pResamplingSource2->setResamplingRatio(m_Playrate);
+        else
+            m_pResamplingSource2->setResamplingRatio(1.f);
+
+
         m_pResamplingSource2->getNextAudioBlock(buffer2);
+        m_Gain.SetVolume(m_GainVolume2.getValue());
         m_Gain.processBlock(buffer2, m_LeftWrist.y);
     }
 
@@ -508,11 +528,13 @@ void MainComponent::resized()
     // Effect settings
     int const sliderSize1{ 150 };
     int const sliderSize2{ 100 };
+    int const sliderSize3{ 85 };
     int const bottomY{ m_SettingsY + 100 };
 
     // Gain settings
-    m_GainDry.setBounds(10, bottomY, sliderSize2, sliderSize2);
-    m_GainVolume.setBounds(104, bottomY, sliderSize2, sliderSize2);
+    m_GainDry.setBounds(10, bottomY - 5, sliderSize2, sliderSize2);
+    m_GainVolume.setBounds(95, bottomY - 43, sliderSize2, sliderSize3);
+    m_GainVolume2.setBounds(95, bottomY + 78, sliderSize2, sliderSize3);
 
     // Playrate settings
     m_EnableTreshold.setBounds(290, bottomY - 30, 40, 40);
