@@ -135,7 +135,7 @@ void MainComponent::initPhaserSettingsUI()
     const int tbW{ 40 };
     const int tbH{ 20 };
 
-    // Rate
+    // Rate 1
     addAndMakeVisible(&m_PhaserRate);
     m_PhaserRate.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
     m_PhaserRate.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
@@ -147,10 +147,27 @@ void MainComponent::initPhaserSettingsUI()
     };
 
     addAndMakeVisible(m_PhaserRateLabel);
-    m_PhaserRateLabel.setFont(juce::Font(18.f, juce::Font::bold));
-    m_PhaserRateLabel.setText("Rate", juce::dontSendNotification);
+    m_PhaserRateLabel.setFont(juce::Font(15.f, juce::Font::bold));
+    m_PhaserRateLabel.setText("Rate 1", juce::dontSendNotification);
     m_PhaserRateLabel.setJustificationType(juce::Justification::centredTop);
     m_PhaserRateLabel.attachToComponent(&m_PhaserRate, false);
+
+    // Rate 2
+    addAndMakeVisible(&m_PhaserRate2);
+    m_PhaserRate2.setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+    m_PhaserRate2.setTextBoxStyle(juce::Slider::TextBoxBelow, true, tbW, tbH);
+    m_PhaserRate2.setRange(0.f, m_Phaser2.GetTotalMax(), 0.01f);
+    m_PhaserRate2.setValue(m_Phaser2.GetMaxRate(), juce::dontSendNotification);
+    m_PhaserRate2.onDragEnd = [this]
+    {
+        m_Phaser2.SetMax(m_PhaserRate2.getValue());
+    };
+
+    addAndMakeVisible(m_PhaserRateLabel2);
+    m_PhaserRateLabel2.setFont(juce::Font(15.f, juce::Font::bold));
+    m_PhaserRateLabel2.setText("Rate 2", juce::dontSendNotification);
+    m_PhaserRateLabel2.setJustificationType(juce::Justification::centredTop);
+    m_PhaserRateLabel2.attachToComponent(&m_PhaserRate2, false);
 
     // Depth
     addAndMakeVisible(&m_Depth);
@@ -161,6 +178,7 @@ void MainComponent::initPhaserSettingsUI()
     m_Depth.onDragEnd = [this]
     {
         m_Phaser.SetDepth(m_Depth.getValue());
+        m_Phaser2.SetDepth(m_Depth.getValue());
     };
 
     addAndMakeVisible(m_DepthLabel);
@@ -168,6 +186,21 @@ void MainComponent::initPhaserSettingsUI()
     m_DepthLabel.setText("Depth", juce::dontSendNotification);
     m_DepthLabel.setJustificationType(juce::Justification::centredTop);
     m_DepthLabel.attachToComponent(&m_Depth, false);
+
+    // Toggle P
+    addAndMakeVisible(m_ToggleP1);
+    m_ToggleP1.setToggleState(m_P1, juce::dontSendNotification);
+    m_ToggleP1.onStateChange = [this]
+    {
+        m_P1 = m_ToggleP1.getToggleState();
+    };
+
+    addAndMakeVisible(m_ToggleP2);
+    m_ToggleP2.setToggleState(m_P2, juce::dontSendNotification);
+    m_ToggleP2.onStateChange = [this]
+    {
+        m_P2 = m_ToggleP2.getToggleState();
+    };
 }
 
 void MainComponent::initTHDSettingsUI()
@@ -249,7 +282,7 @@ void MainComponent::initGainSettingsUI()
     m_GainVolume.setValue(m_Gain.GetVolume(), juce::dontSendNotification);
 
     m_GainVolumeLabel.setFont(juce::Font(15.f, juce::Font::bold));
-    m_GainVolumeLabel.setText("Sample 1", juce::dontSendNotification);
+    m_GainVolumeLabel.setText("Gain 1", juce::dontSendNotification);
     m_GainVolumeLabel.setJustificationType(juce::Justification::centredTop);
     m_GainVolumeLabel.attachToComponent(&m_GainVolume, false);
 
@@ -261,7 +294,7 @@ void MainComponent::initGainSettingsUI()
     m_GainVolume2.setValue(m_Gain.GetVolume(), juce::dontSendNotification);
 
     m_GainVolumeLabel2.setFont(juce::Font(15.f, juce::Font::bold));
-    m_GainVolumeLabel2.setText("Sample 2", juce::dontSendNotification);
+    m_GainVolumeLabel2.setText("Gain 2", juce::dontSendNotification);
     m_GainVolumeLabel2.setJustificationType(juce::Justification::centredTop);
     m_GainVolumeLabel2.attachToComponent(&m_GainVolume2, false);
 }
@@ -339,7 +372,7 @@ void MainComponent::initKinect()
         m_ConnectedLabel.setText("connected", juce::dontSendNotification);
         m_ConnectedLabel.setColour(juce::Label::textColourId, juce::Colours::lightgreen);
 
-        m_pTracker->SetAngle(5);
+        m_pTracker->SetAngle(10);
         m_pTracker->AddJointForTracking(NUI_SKELETON_POSITION_WRIST_LEFT);
         m_pTracker->AddJointForTracking(NUI_SKELETON_POSITION_WRIST_RIGHT);
     }
@@ -387,6 +420,9 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 
     m_Phaser.prepareToPlay(samplesPerBlockExpected, sampleRate);
     m_Phaser.initVoices();
+
+    m_Phaser2.prepareToPlay(samplesPerBlockExpected, sampleRate);
+    m_Phaser2.initVoices();
 }
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
@@ -422,6 +458,12 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         if(m_D1)
             m_THD.processBlock(buffer1);
 
+        if (m_P1)
+        {
+            m_Phaser.SetRate(m_Phaser.GetMaxRate() * (1.f - m_RightWrist.x));
+            m_Phaser.processBlock(buffer1);
+        }
+
         m_Gain.SetVolume(m_GainVolume.getValue());
         m_Gain.processBlock(buffer1, 1 - m_LeftWrist.y);
     }
@@ -438,6 +480,12 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
         if(m_D2)
             m_THD.processBlock(buffer2);
+
+        if (m_P2)
+        {
+            m_Phaser2.SetRate(m_Phaser2.GetMaxRate() * (1.f - m_RightWrist.x));
+            m_Phaser2.processBlock(buffer2);
+        }
 
         m_Gain.SetVolume(m_GainVolume2.getValue());
         m_Gain.processBlock(buffer2, m_LeftWrist.y);
@@ -459,9 +507,6 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
                 outputData[sample] = buffer1Data[sample] + buffer2Data[sample];
         }
     }
-
-    //m_Phaser.SetRate(m_Phaser.GetMaxRate() * (1.f - m_RightWrist.x));
-    //m_Phaser.processBlock(bufferToFill);
 }
 
 void MainComponent::updateEffects()
@@ -601,8 +646,11 @@ void MainComponent::resized()
     m_ToggleD2.setBounds(415 + toggleSpace + 3, m_SettingsY - 5, 40, 40);
 
     // Phaser settings
-    m_PhaserRate.setBounds(600, bottomY, sliderSize2, sliderSize2);
+    m_PhaserRate.setBounds(600, bottomY - 43, sliderSize2, sliderSize3);
+    m_PhaserRate2.setBounds(600, bottomY + 78, sliderSize2, sliderSize3);
     m_Depth.setBounds(687, bottomY, sliderSize2, sliderSize2);
+    m_ToggleP1.setBounds(610, m_SettingsY - 5, 40, 40);
+    m_ToggleP2.setBounds(610 + toggleSpace, m_SettingsY - 5, 40, 40);
 
     renderKinectTracking();
 }
@@ -758,6 +806,13 @@ void MainComponent::changeState(TransportState newState)
         case Playing:
             m_PlayButton.setEnabled(false);
             m_StopButton.setEnabled(true);
+            
+            if (m_pReaderSource != nullptr)
+                m_pReaderSource->setNextReadPosition(0);
+
+            if (m_pReaderSource2 != nullptr)
+                m_pReaderSource2->setNextReadPosition(0);
+
             break;
 
         case Loading:

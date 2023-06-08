@@ -2,7 +2,7 @@
 #include <random>
 
 effects::Phaser::Phaser()
-	: m_Rate{ 1.5f }
+	: m_Rate{ 3.f }
     , m_MaxRate{ 10.f }
 	, m_Depth{ 0.5f }
 	, m_Phase{ 0.f }
@@ -11,9 +11,9 @@ effects::Phaser::Phaser()
     , m_MaxDelay{ 1.f }
     , m_Voices{ 3 }
     , m_Delays{ }
-    , m_CurrentMaxRate{ 1.f }
+    , m_CurrentMaxRate{ 0.f }
 {
-
+    m_CurrentMaxRate = m_Rate;
 }
 
 effects::Phaser::~Phaser()

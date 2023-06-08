@@ -18,6 +18,7 @@ namespace effects
 		void SetRate(float rate);
 		void SetMax(float max);
 
+		float GetRate() const { return m_Rate; }
 		float GetMaxRate() const { return m_CurrentMaxRate; }
 		float GetTotalMax() const { return m_MaxRate; }
 		float GetDepth() const { return m_Depth; }

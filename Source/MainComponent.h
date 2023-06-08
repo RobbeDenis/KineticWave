@@ -79,8 +79,13 @@ private:
 
     // Phaser
     effects::Phaser m_Phaser;
+    effects::Phaser m_Phaser2;
+    juce::ToggleButton m_ToggleP1;
+    juce::ToggleButton m_ToggleP2;
     juce::Slider m_PhaserRate;
+    juce::Slider m_PhaserRate2;
     juce::Label m_PhaserRateLabel;
+    juce::Label m_PhaserRateLabel2;
     juce::Slider m_Depth;
     juce::Label m_DepthLabel;
     bool m_P1;
