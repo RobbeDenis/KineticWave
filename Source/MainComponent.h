@@ -97,7 +97,9 @@ private:
     // Sample
     juce::AudioFormatManager m_FormatManager;
     std::unique_ptr <juce::ResamplingAudioSource> m_pResamplingSource;
+    std::unique_ptr <juce::ResamplingAudioSource> m_pResamplingSource2;
     std::unique_ptr<juce::AudioFormatReaderSource> m_pReaderSource;
+    std::unique_ptr<juce::AudioFormatReaderSource> m_pReaderSource2;
 
     // Loading sample
     std::unique_ptr<juce::FileChooser> m_Chooser;
@@ -132,7 +134,10 @@ private:
     int m_FontSize;
 
     // Other
-    float m_SmoothingFactor;
+    float m_NormalizationFactor = 0.5f;
+    float m_SampleRate;
+    int m_SamplesPerBlock = 0.f;
+    float m_SmoothingFactor = 0;
     int m_IChannels;
     int m_OChannels;
 

@@ -326,8 +326,21 @@ MainComponent::~MainComponent()
 
 void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRate)
 {
-    m_pResamplingSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
-    m_pResamplingSource->setResamplingRatio(m_Playrate);
+    m_SampleRate = sampleRate;
+    m_SamplesPerBlock = samplesPerBlockExpected;
+
+    if (m_pResamplingSource != nullptr)
+    {
+        m_pResamplingSource->prepareToPlay(samplesPerBlockExpected, sampleRate);
+        m_pResamplingSource->setResamplingRatio(m_Playrate);
+    }
+
+    if (m_pResamplingSource2 != nullptr)
+    {
+        m_pResamplingSource2->prepareToPlay(samplesPerBlockExpected, sampleRate);
+        m_pResamplingSource2->setResamplingRatio(m_Playrate);
+    }
+
     m_Phaser.prepareToPlay(samplesPerBlockExpected, sampleRate);
     m_Phaser.initVoices();
 }
@@ -337,7 +350,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
     if (m_State != Playing)
         return;
 
-    if (m_pReaderSource.get() == nullptr)
+    if (m_pReaderSource2.get() == nullptr && m_pReaderSource.get() == nullptr)
     {
         bufferToFill.clearActiveBufferRegion();
         return;
@@ -371,8 +384,37 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         m_THD.SetAmount(distortion);
     }
 
-    m_pResamplingSource->setResamplingRatio(m_Playrate);
-    m_pResamplingSource->getNextAudioBlock(bufferToFill);
+    juce::AudioSourceChannelInfo buffer1(bufferToFill);
+    juce::AudioSourceChannelInfo buffer2(bufferToFill);
+    juce::AudioBuffer<float> tempBuffer1(buffer1.buffer->getNumChannels(), buffer1.numSamples);
+    juce::AudioBuffer<float> tempBuffer2(buffer2.buffer->getNumChannels(), buffer2.numSamples);
+    buffer1.buffer = &tempBuffer1;
+    buffer2.buffer = &tempBuffer2;
+
+
+    if (m_pResamplingSource != nullptr)
+    {
+        m_pResamplingSource->setResamplingRatio(m_Playrate);
+        m_pResamplingSource->getNextAudioBlock(buffer1);
+    }
+
+    if (m_pResamplingSource2 != nullptr)
+    {
+        m_pResamplingSource2->setResamplingRatio(m_Playrate);
+        m_pResamplingSource2->getNextAudioBlock(buffer2);
+    }
+
+    for (int channel = 0; channel < bufferToFill.buffer->getNumChannels(); ++channel)
+    {
+        const float* buffer1Data = buffer1.buffer->getReadPointer(channel, buffer1.startSample);
+        const float* buffer2Data = buffer2.buffer->getReadPointer(channel, buffer2.startSample);
+        float* outputData = bufferToFill.buffer->getWritePointer(channel, bufferToFill.startSample);
+
+        for (int sample = 0; sample < bufferToFill.numSamples; ++sample)
+        {
+            outputData[sample] = buffer1Data[sample] + buffer2Data[sample];
+        }
+    }
 
     m_THD.processBlock(bufferToFill);
     m_Phaser.SetRate(m_Phaser.GetMaxRate() * (1.f - m_RightWrist.x));
@@ -382,7 +424,11 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
 void MainComponent::releaseResources()
 {
-    m_pResamplingSource->releaseResources();
+    if(m_pResamplingSource != nullptr)
+        m_pResamplingSource->releaseResources();
+
+    if(m_pResamplingSource2 != nullptr)
+        m_pResamplingSource2->releaseResources();
 }
 
 void MainComponent::paint (juce::Graphics& g)
@@ -449,6 +495,7 @@ void MainComponent::resized()
     const int bOffset{ bH + 5 };
     const int loadOffset{ 3 };
     m_OpenButton.setBounds(bX, bY, bW / 2 - loadOffset, bH);
+    m_OpenButton2.setBounds(bX + bW - (bW / 2 - loadOffset), bY, bW / 2 - loadOffset, bH);
     m_PlayButton.setBounds(bX, bY + bOffset, bW, bH);
     m_StopButton.setBounds(bX, bY + bOffset * 2, bW, bH);
 
@@ -502,7 +549,13 @@ void MainComponent::loadFile(bool second)
                 {
                     if (second)
                     {
+                        auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader, true);
+                        m_pResamplingSource2 = std::make_unique<juce::ResamplingAudioSource>(newSource.get(), false);
+                        m_PlayButton.setEnabled(true);
+                        m_pReaderSource2.reset(newSource.release());
 
+                        m_pReaderSource2->setLooping(true);
+                        m_pResamplingSource2->setResamplingRatio(0.5f);
                     }
                     else
                     {
