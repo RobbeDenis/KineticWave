@@ -27,8 +27,10 @@ MainComponent::MainComponent()
     , m_OChannels{ 0 }
     , m_PRS1{ true }
     , m_PRS2{ true }
-    , m_D1{ true }
+    , m_D1{ false }
     , m_D2{ false }
+    , m_P1{ true }
+    , m_P2{ true }
 {
     setSize (800, 600);
 
@@ -398,33 +400,7 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
         return;
     }
 
-    if (m_UseTreshold)
-    {
-        if (m_LeftWrist.x < m_MinTreshHold)
-            setPlayrate(m_CurrentMinPR);
-        else if (m_LeftWrist.x > m_MaxTreshHold)
-            setPlayrate(m_CurrentMaxPR);
-        else
-            setPlayrate(std::abs(m_CurrentMaxPR - m_CurrentMinPR));
-    }
-    else
-    {
-        const float playrate{ m_CurrentMinPR + (m_CurrentMaxPR - m_CurrentMinPR) * m_LeftWrist.x };
-        setPlayrate(playrate);
-    }
-
-    if (m_UseTresholdTHD)
-    {
-        if (m_RightWrist.y < 0.5f)
-            m_THD.SetAmount(0.f);
-        else 
-            m_THD.SetAmount(m_THD.GetMax() * 0.8f);
-    }
-    else
-    {
-        const float distortion{ m_THD.GetMax() * m_RightWrist.y };
-        m_THD.SetAmount(distortion);
-    }
+    updateEffects();
 
     juce::AudioSourceChannelInfo buffer1(bufferToFill);
     juce::AudioSourceChannelInfo buffer2(bufferToFill);
@@ -486,6 +462,37 @@ void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& buffe
 
     //m_Phaser.SetRate(m_Phaser.GetMaxRate() * (1.f - m_RightWrist.x));
     //m_Phaser.processBlock(bufferToFill);
+}
+
+void MainComponent::updateEffects()
+{
+    if (m_UseTreshold)
+    {
+        if (m_LeftWrist.x < m_MinTreshHold)
+            setPlayrate(m_CurrentMinPR);
+        else if (m_LeftWrist.x > m_MaxTreshHold)
+            setPlayrate(m_CurrentMaxPR);
+        else
+            setPlayrate(std::abs(m_CurrentMaxPR - m_CurrentMinPR));
+    }
+    else
+    {
+        const float playrate{ m_CurrentMinPR + (m_CurrentMaxPR - m_CurrentMinPR) * m_LeftWrist.x };
+        setPlayrate(playrate);
+    }
+
+    if (m_UseTresholdTHD)
+    {
+        if (m_RightWrist.y < 0.5f)
+            m_THD.SetAmount(0.f);
+        else
+            m_THD.SetAmount(m_THD.GetMax() * 0.8f);
+    }
+    else
+    {
+        const float distortion{ m_THD.GetMax() * m_RightWrist.y };
+        m_THD.SetAmount(distortion);
+    }
 }
 
 void MainComponent::releaseResources()

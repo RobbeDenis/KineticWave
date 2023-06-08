@@ -153,12 +153,12 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Source\Phaser.cpp"/>
     <ClCompile Include="..\..\Source\THD.cpp"/>
     <ClCompile Include="..\..\Source\Gain.cpp"/>
     <ClCompile Include="..\..\Source\KSkeletonTracker.cpp"/>
     <ClCompile Include="..\..\Source\Main.cpp"/>
     <ClCompile Include="..\..\Source\MainComponent.cpp"/>
-    <ClCompile Include="..\..\Source\Phaser.cpp"/>
     <ClCompile Include="..\..\..\..\Programs\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
@@ -2426,11 +2426,11 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_gui_extra.cpp"/>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\Phaser.h"/>
     <ClInclude Include="..\..\Source\THD.h"/>
     <ClInclude Include="..\..\Source\Gain.h"/>
     <ClInclude Include="..\..\Source\KSkeletonTracker.h"/>
     <ClInclude Include="..\..\Source\MainComponent.h"/>
-    <ClInclude Include="..\..\Source\Phaser.h"/>
     <ClInclude Include="..\..\..\..\Programs\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h"/>
     <ClInclude Include="..\..\..\..\Programs\JUCE\modules\juce_audio_basics\buffers\juce_AudioChannelSet.h"/>
     <ClInclude Include="..\..\..\..\Programs\JUCE\modules\juce_audio_basics\buffers\juce_AudioDataConverters.h"/>

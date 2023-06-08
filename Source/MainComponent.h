@@ -37,6 +37,7 @@ private:
     void initTHDSettingsUI();
     void initPhaserSettingsUI();
 
+    void updateEffects();
     void renderKinectTracking();
     void enableUpdate(bool enable);
     void setUpdateInterval(int intervalMs);
@@ -82,6 +83,8 @@ private:
     juce::Label m_PhaserRateLabel;
     juce::Slider m_Depth;
     juce::Label m_DepthLabel;
+    bool m_P1;
+    bool m_P2;
 
     // THD
     effects::THD m_THD;
