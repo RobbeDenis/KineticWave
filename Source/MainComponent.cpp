@@ -112,7 +112,7 @@ void MainComponent::initPlayrateSettingsUI()
 
     addAndMakeVisible(m_Treshold);
     m_Treshold.setFont(juce::Font(18.f, juce::Font::bold));
-    m_Treshold.setText("TRESHOLD", juce::dontSendNotification);
+    m_Treshold.setText("THRESHOLD", juce::dontSendNotification);
     m_Treshold.setJustificationType(juce::Justification::centredTop);
 
     // Toggle PRS
@@ -235,7 +235,7 @@ void MainComponent::initTHDSettingsUI()
 
     addAndMakeVisible(m_TresholdTHD);
     m_TresholdTHD.setFont(juce::Font(18.f, juce::Font::bold));
-    m_TresholdTHD.setText("TRESHOLD", juce::dontSendNotification);
+    m_TresholdTHD.setText("THRESHOLD", juce::dontSendNotification);
     m_TresholdTHD.setJustificationType(juce::Justification::centredTop);
 
     // Toggle D

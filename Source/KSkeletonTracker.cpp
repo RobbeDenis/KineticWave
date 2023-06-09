@@ -14,7 +14,7 @@ KSkeletonTracker::~KSkeletonTracker()
 
 void KSkeletonTracker::ShutDown()
 {
-    if (m_pNuiSensor)
+    if (m_pNuiSensor != nullptr)
         m_pNuiSensor->NuiShutdown();
 }
 
@@ -38,6 +38,9 @@ HRESULT KSkeletonTracker::Init()
 
 void KSkeletonTracker::Update()
 {
+    if (m_pNuiSensor == nullptr)
+        return;
+
     if (WAIT_OBJECT_0 == WaitForSingleObject(m_hNextSkeletonEvent, 0))
     {
         NUI_SKELETON_FRAME skeletonFrame = { 0 };
@@ -73,6 +76,9 @@ void KSkeletonTracker::CopySkeletonData(const NUI_SKELETON_DATA& skeleton)
 
 void KSkeletonTracker::SetAngle(LONG angleDegrees)
 {
+    if (m_pNuiSensor == nullptr)
+        return;
+
     m_pNuiSensor->NuiCameraElevationSetAngle(std::clamp(angleDegrees, static_cast<LONG>(0), static_cast <LONG>(30)));
 }
 
@@ -83,5 +89,8 @@ void KSkeletonTracker::AddJointForTracking(unsigned joint)
 
 const Vector4& KSkeletonTracker::GetTrackingJointPosition(unsigned joint) const
 {
+    if (m_pNuiSensor == nullptr)
+        return { 0,0,0,0 };
+
     return m_TrackingJointsMap.at(joint);
 }
