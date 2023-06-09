@@ -443,14 +443,14 @@ void MainComponent::prepareToPlay (int samplesPerBlockExpected, double sampleRat
 
 void MainComponent::getNextAudioBlock (const juce::AudioSourceChannelInfo& bufferToFill)
 {
+    bufferToFill.clearActiveBufferRegion();
+
     if (m_State != Playing)
         return;
 
+
     if (m_pReaderSource2.get() == nullptr && m_pReaderSource.get() == nullptr)
-    {
-        bufferToFill.clearActiveBufferRegion();
         return;
-    }
 
     updateEffects();
 
