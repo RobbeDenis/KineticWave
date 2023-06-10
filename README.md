@@ -1,4 +1,5 @@
 # KineticWave
 Kinect controlled resampler
-*Example*
+
+*Audio example*
 https://www.youtube.com/watch?v=HZwI-MNUuBg
