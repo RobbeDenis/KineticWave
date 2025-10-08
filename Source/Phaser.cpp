@@ -71,7 +71,7 @@ void effects::Phaser::processBlock(const juce::AudioSourceChannelInfo& info)
             {
                 m_DelayedVoices[voice].push(sample);
 
-                float voiceSample{ m_DelayedVoices[voice].front() };
+                float voiceSample{ m_DelayedVoices[voice].back() };
                 voiceSample = sample * std::sin(m_Phase + m_Delays[voice]);
                 voiceSample *= m_Depth;
                 extraVoices += voiceSample;
